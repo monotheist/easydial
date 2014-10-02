@@ -11,10 +11,17 @@ Now you can search "contains" too. Now you can search FirstName, Last Name, Midd
 
 Whats new: 
 T9 style search of phone book directly via keypad
+
 Search numbers via Keypad
+
 Search directly from start page.
+
 Search pasted names
+
 History of called numbers now stored
+
 Now you can Text/SMS a contact detail to another user.
+
 You can save a contact detail that is pasted in the dialer.
+
 Search starts with or contains.
