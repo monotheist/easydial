@@ -1,0 +1,432 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Shapes;
+using Microsoft.Phone.Controls;
+using Microsoft.Phone.Tasks;
+using Microsoft.Phone.UserData;
+using Microsoft.Phone.Shell;
+using Microsoft.Phone.Net.NetworkInformation;
+
+using System.Data.Linq;
+using System.Data.Linq.Mapping;
+using System.ComponentModel;
+using System.Collections.ObjectModel;
+
+
+namespace EasyDial
+{
+    public partial class MainPage : PhoneApplicationPage, INotifyPropertyChanged
+    {
+        // Constructor
+        PhoneNumberChooserTask phoneNumberChooserTask;
+        protected string CurrentTaskDisplayName;
+        protected string CurrentTaskDisplayNumber;
+        protected string phoneNumber;
+        protected string displayName;
+        protected string dialledNo;
+
+        // Data context for the local database
+        private HistoryDataContext HistoryDB;
+        
+        // Define an observable collection property that controls can bind to.
+        private ObservableCollection<history> _historyItems;
+        public ObservableCollection<history> HistoryItems
+        {
+            get
+            {
+                return _historyItems;
+            }
+            set
+            {
+                if (_historyItems != value)
+                {
+                    _historyItems = value;
+                    NotifyPropertyChanged("HistoryItems");
+                }
+            }
+        }
+        
+        
+        public MainPage()
+        {
+            InitializeComponent();
+
+            //showContact = String.Empty;
+            dialledNo = String.Empty;
+
+            // Connect to the database and instantiate data context.
+            HistoryDB = new HistoryDataContext(HistoryDataContext.DBConnectionString);
+
+            // Data context and observable collection are children of the main page.
+            this.DataContext = this;
+            
+            phoneNumberChooserTask = new PhoneNumberChooserTask();
+            phoneNumberChooserTask.Completed += new EventHandler<PhoneNumberResult>(phoneNumberChooserTask_Completed);
+            CurrentTaskDisplayName = String.Empty;
+
+        }
+
+        protected override void OnNavigatedTo(System.Windows.Navigation.NavigationEventArgs e)
+        {
+            // Call the base method.
+            base.OnNavigatedTo(e);
+
+            // Define the query to gather all of the history items.
+            var callHistoryItemsInDB = from history historyItem in HistoryDB.HistoryItems
+                                select historyItem;
+
+            // Execute the query and place the results into a collection.
+            HistoryItems = new ObservableCollection<history>(callHistoryItemsInDB);
+
+            // Fetch the parameters passed from querystring
+
+            if (NavigationContext.QueryString.ContainsKey("phoneNumber"))
+            {
+                phoneNumber = NavigationContext.QueryString["phoneNumber"].ToString();
+            }
+
+            if (NavigationContext.QueryString.ContainsKey("displayName"))
+            {
+                displayName = NavigationContext.QueryString["displayName"].ToString();
+            }
+
+            //if (NavigationContext.QueryString.ContainsKey("dialledno"))
+            //    dialledNo = NavigationContext.QueryString["dialledno"].ToString();
+        }
+
+
+        #region INotifyPropertyChanged Members
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        // Used to notify Silverlight that a property has changed.
+        private void NotifyPropertyChanged(string propertyName)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+        #endregion
+
+
+        private void UpdateTile()
+        {
+            // Application Tile is always the first Tile, even if it is not pinned to Start.
+            ShellTile TileToFind = ShellTile.ActiveTiles.First();
+            
+            // Application should always be found
+            if (TileToFind != null)
+            {
+                
+                // Set the properties to update for the Application Tile.
+                // Empty strings for the text values and URIs will result in the property being cleared.
+                StandardTileData NewTileData = new StandardTileData
+                {
+                    Title = (DeviceNetworkInformation.IsNetworkAvailable || !String.IsNullOrEmpty(DeviceNetworkInformation.CellularMobileOperator)) ? DeviceNetworkInformation.CellularMobileOperator : "Easy Dial",
+                };
+
+                // Update the Application Tile
+                TileToFind.Update(NewTileData);
+            }
+
+        }
+
+        private void hyperlinkButton1_Click(object sender, RoutedEventArgs e)
+        {
+
+            //this.Content = new ContactsList();
+            phoneNumberChooserTask.Show();
+            
+            //return;
+        }
+
+        private void button1_Click(object sender, RoutedEventArgs e)
+        {
+            DateTime callTime = DateTime.Now;
+            PhoneCallTask pct = new PhoneCallTask();
+            pct.PhoneNumber = textBox1.Text;
+            if (textBox1.Text == CurrentTaskDisplayNumber)
+                pct.DisplayName = CurrentTaskDisplayName;
+            else
+                pct.DisplayName = String.Empty;
+            pct.Show();
+
+            //Send the no to history
+            // Create a new history item based on the text box.
+            history newCall = new history 
+                { DialledNo = textBox1.Text
+                , ContactName = pct.DisplayName
+                , CallTime = callTime
+
+
+};
+
+            // Add a history item to the observable collection.
+            HistoryItems.Add(newCall);
+
+            // Add a history item to the local database.
+            HistoryDB.HistoryItems.InsertOnSubmit(newCall);
+
+            // Save changes to the database.
+            HistoryDB.SubmitChanges();            
+        }
+
+        protected override void OnNavigatedFrom(System.Windows.Navigation.NavigationEventArgs e)
+        {
+            // Call the base method.
+            base.OnNavigatedFrom(e);
+        }
+
+
+        void phoneNumberChooserTask_Completed(object sender, PhoneNumberResult e)
+        {
+            if (e.TaskResult == TaskResult.OK)
+            {
+                CurrentTaskDisplayNumber = e.PhoneNumber;
+                textBox1.Text = CurrentTaskDisplayNumber;
+                CurrentTaskDisplayName = e.DisplayName;
+            }
+                
+            textBox1.Focus();
+        }
+
+        private void sms_Click(object sender, RoutedEventArgs e)
+        {
+            SmsComposeTask sct = new SmsComposeTask();
+            sct.To = textBox1.Text;
+            sct.Show();
+        }
+
+        private void MainPage_Loaded(object sender, RoutedEventArgs e)
+        {
+            UpdateTile();
+
+            if (!String.IsNullOrEmpty(dialledNo))
+                CurrentTaskDisplayNumber = dialledNo;
+            else if (!String.IsNullOrEmpty(phoneNumber))
+                CurrentTaskDisplayNumber = phoneNumber;
+            if (!String.IsNullOrEmpty(displayName))
+                CurrentTaskDisplayName = displayName;
+
+            textBox1.Text = (String.IsNullOrEmpty(CurrentTaskDisplayNumber)?"":CurrentTaskDisplayNumber) ;
+            textBox1.Focus();            
+        }
+
+        private void sendButton_Click(object sender, EventArgs e)
+        {
+            SmsComposeTask sct = new SmsComposeTask();
+            string DisplayName = string.Empty;
+            if (textBox1.Text == CurrentTaskDisplayNumber)
+                DisplayName = CurrentTaskDisplayName +": ";
+            
+
+            sct.Body = DisplayName + ((textBox1.Text.Trim() == string.Empty) ? CurrentTaskDisplayNumber : textBox1.Text.Trim());
+            sct.Show();
+        }
+
+        private void saveButton_Click(object sender, EventArgs e)
+        {
+            SaveContactTask saveContactTask;
+            saveContactTask = new SaveContactTask();
+            saveContactTask.Completed += new EventHandler<SaveContactResult>(saveContactTask_Completed);
+            saveContactTask.MobilePhone = textBox1.Text.Trim();
+            saveContactTask.Show();
+        }
+
+        private void reviewButton_Click(object sender, EventArgs e)
+        {
+
+            MarketplaceReviewTask marketplaceReviewTask = new MarketplaceReviewTask();
+            
+            marketplaceReviewTask.Show();
+        }
+
+        void saveContactTask_Completed(object sender, SaveContactResult e)
+        {
+        }
+
+        private void historyButton_Click(object sender, EventArgs e)
+        {
+            this.NavigationService.Navigate(new Uri("/History.xaml", UriKind.Relative));
+        }
+
+    }
+
+
+    [Table]
+    public class history : INotifyPropertyChanged, INotifyPropertyChanging
+    {
+        // Define item name: private field, public property and database column.
+        private int _callserialno;
+        private string _dialledNo;
+        internal string _contactName;
+        private string _callDetails;
+        private DateTime _callTime;
+        private bool _isComplete;
+
+        [Column(IsPrimaryKey = true, IsDbGenerated= true, DbType="INT NOT NULL Identity", CanBeNull=false, AutoSync = AutoSync.OnInsert)]
+        public int Callserialno
+        {
+            get { return _callserialno; }
+            set 
+            {
+                if (_callserialno != value)
+                {
+                    NotifyPropertyChanging("Callserialno");
+                    _callserialno = value;
+                    NotifyPropertyChanged("Callserialno");
+                }
+            }
+        }        
+
+        [Column]
+        public string DialledNo
+        {
+            get
+            {
+                return _dialledNo;
+            }
+            set
+            {
+                if (_dialledNo != value)
+                {
+                    NotifyPropertyChanging("DialledNo");
+                    _dialledNo = value;
+                    NotifyPropertyChanged("DialledNo");
+                }
+            }
+        }        
+
+        [Column]
+        public string ContactName
+        {
+            get {  
+                
+                if(string.IsNullOrEmpty(_contactName))
+                    return _dialledNo;
+                else
+                return _contactName; 
+            
+            }
+            set
+            {
+                if (_contactName != value)
+                {
+                    NotifyPropertyChanging("DialledContact");
+                    _contactName = value;
+                    NotifyPropertyChanged("DialledContact");
+                }
+            }
+        }
+
+        [Column]
+        public string CallDetails
+        {
+            get { return _callDetails; }
+            set
+            {
+                if (_callDetails != value)
+                {
+                    NotifyPropertyChanging("DialledContact");
+                    _callDetails = value;
+                    NotifyPropertyChanged("DialledContact");
+                }
+            }
+        }
+
+        [Column]
+        public bool IsComplete
+        {
+            get
+            {
+                return _isComplete;
+            }
+            set
+            {
+                if (_isComplete != value)
+                {
+                    NotifyPropertyChanging("IsComplete");
+                    _isComplete = value;
+                    NotifyPropertyChanged("IsComplete");
+                }
+            }
+
+        }
+
+        // Version column aids update performance.
+        [Column(IsVersion = true)]
+        private Binary _version;
+
+        [Column]
+        public DateTime CallTime
+        {
+            get
+            {
+                return _callTime;
+            }
+            set
+            {
+                if (_callTime != value)
+                {
+                    NotifyPropertyChanging("CallTime");
+                    _callTime = value;
+                    NotifyPropertyChanged("CallTime");
+                }
+            }
+        }
+        #region INotifyPropertyChanged Members
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged(string propertyName)
+        {
+            if (PropertyChanged != null)
+            {
+                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
+            }
+        }
+
+        #endregion
+
+        #region INotifyPropertyChanging Members
+
+        public event PropertyChangingEventHandler PropertyChanging;
+
+        // Used to notify the data context that a data context property is about to change
+        private void NotifyPropertyChanging(string propertyName)
+        {
+            if (PropertyChanging != null)
+            {
+                PropertyChanging(this, new PropertyChangingEventArgs(propertyName));
+            }
+        }
+
+        #endregion
+
+        
+    }
+
+    public class HistoryDataContext : DataContext
+    {
+        // Specify the connection string as a static, used in main page and app.xaml.
+        public static string DBConnectionString = "Data Source=isostore:/history.sdf";
+
+        // Pass the connection string to the base class.
+        public HistoryDataContext(string connectionString)
+            : base(connectionString)
+        { }
+
+        // Specify a single table for the history items.
+        public Table<history> HistoryItems;
+    }
+
+}

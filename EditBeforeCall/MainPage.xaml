@@ -1,0 +1,213 @@
+﻿<phone:PhoneApplicationPage 
+    x:Class="EasyDial.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:phone="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone"
+    xmlns:shell="clr-namespace:Microsoft.Phone.Shell;assembly=Microsoft.Phone"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d" d:DesignWidth="480" d:DesignHeight="696"
+    xmlns:toolkit="clr-namespace:Microsoft.Phone.Controls;assembly=Microsoft.Phone.Controls.Toolkit"
+    xmlns:converters="clr-namespace:EasyDial"   
+    xmlns:l="clr-namespace:NavigationListControl;assembly=NavigationListControl"
+    FontFamily="{StaticResource PhoneFontFamilyNormal}"
+    FontSize="{StaticResource PhoneFontSizeNormal}"
+    Foreground="{StaticResource PhoneForegroundBrush}"
+    SupportedOrientations="Portrait" Orientation="Portrait"
+    shell:SystemTray.IsVisible="True"
+    Loaded="MainPage_Loaded">
+
+    <UserControl.Resources>
+        <converters:PhoneConverter x:Key="PhoneConverter" />
+        <converters:DateConverter x:Key="dateConverter" />
+        <converters:ImageConverter x:Key="imageConverter"/>
+        <Style x:Key="ButtonStyle1" TargetType="Button">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="Transparent">
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualState x:Name="Normal"/>
+                                    <VisualState x:Name="MouseOver"/>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentContainer" 
+                                       Storyboard.TargetProperty="Foreground">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneBackgroundBrush}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="PressedHighlightBackground" 
+                                       Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneAccentBrush}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonBackground" 
+                                       Storyboard.TargetProperty="BorderBrush">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneForegroundBrush}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <Storyboard>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentContainer" 
+                                       Storyboard.TargetProperty="Foreground">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneDisabledBrush}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonBackground" 
+                                       Storyboard.TargetProperty="BorderBrush">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="{StaticResource PhoneDisabledBrush}" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ButtonBackground" 
+                                       Storyboard.TargetProperty="Background">
+                                                <DiscreteObjectKeyFrame KeyTime="0" Value="Transparent" />
+                                            </ObjectAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <Border x:Name="ButtonBackground" BorderBrush="{TemplateBinding BorderBrush}"  
+            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="0" 
+            Background="{TemplateBinding Background}" Margin="{StaticResource PhoneTouchTargetOverhang}" >
+                                <Border x:Name="PressedHighlightBackground" Background="Transparent">
+                                    <ContentControl x:Name="ContentContainer" Foreground="{TemplateBinding Foreground}" 
+                      HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" 
+                      VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Padding="{TemplateBinding Padding}" 
+                      Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"/>
+                                </Border>
+                            </Border>
+                        </Grid>
+                    </ControlTemplate>
+
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    
+   
+
+
+    <!--LayoutRoot is the root grid where all page content is placed-->
+    
+    <Grid x:Name="LayoutRoot">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!--TitlePanel contains the name of the application and page title-->
+        <StackPanel x:Name="TitlePanel" Margin="12,17,0,511" Grid.RowSpan="2">
+            <TextBlock x:Name="ApplicationTitle" Text="Easy Dial" Style="{StaticResource PhoneTextTitle3Style}"/>
+        </StackPanel>
+
+        <!--ContentPanel - place additional content here-->
+        <Grid x:Name="ContentPanel" Grid.Row="1" Margin="12,0,12,0" >
+            <StackPanel>                
+                <StackPanel Orientation="Horizontal">
+                    <TextBox Height="77" HorizontalAlignment="Left" VerticalContentAlignment="Center" Padding="0" Margin="0,45,0,0" 
+                             Name="textBox1" Text="" VerticalAlignment="Top" Width="390" InputScope="TelephoneNumber" FontSize="40"
+                             BorderThickness="1" BorderBrush="Gray" TextChanged="textBox1_TextChanged" LostFocus="textbox1_LostFocus" GotFocus="textbox1_GotFocus" >
+                    </TextBox>
+                    <Button HorizontalAlignment="Left" Margin="-24,45,0,0" BorderThickness="0" Click="hyperlinkButton1_Click" Background="{StaticResource PhoneAccentBrush}" Padding="0,0,4,0" >
+                        <Image Source="PhoneBook.png" Height="48" Width="48" ></Image>
+                    </Button>
+                </StackPanel>
+                <Grid Name="Grid1"  >
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                        <ColumnDefinition Width="*"></ColumnDefinition>
+                    </Grid.ColumnDefinitions>
+                    <Button BorderThickness="0" Name="button1"  Click="button1_Click" Grid.Row="1" Grid.Column="0" Background="{StaticResource PhoneAccentBrush}" Height="80" Width="200" BorderBrush="Transparent" >
+                        <Image Source="Contact.png" Height="48" Width="48"/>
+                    </Button>
+                    <Button BorderThickness="0" Name="TextingButton"  Click="sms_Click" Grid.Row="1" Grid.Column="2" Background="{StaticResource PhoneAccentBrush}" Height="80" Width="200" BorderBrush="Transparent" >
+                        <Image Source="Message.png" Height="48" Width="48"/>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Grid>
+       
+        <Grid Grid.Row="1">
+
+            <!--<StackPanel x:Name="callListPanel" Margin="0,170,0,511" Orientation="Horizontal" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+
+                
+            </StackPanel>-->
+            <StackPanel x:Name="contactListPanel" Margin="15,200,0,0" Orientation="Horizontal" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+                <ListBox x:Name="lstCalls" Grid.Row="1" ItemsSource="{Binding Path=HistoryItems, Mode=OneWay}" >
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+
+                            <StackPanel Orientation="Horizontal"  Margin="0,0,0,0">
+                                <toolkit:ContextMenuService.ContextMenu>
+                                    <toolkit:ContextMenu>
+                                        <toolkit:MenuItem Header="Remove" Command="{Binding RemoveCommand}" CommandParameter="{Binding}" Click="panelCall_Hold"/>
+                                    </toolkit:ContextMenu>
+                                </toolkit:ContextMenuService.ContextMenu>
+
+
+                                <Button x:Name="callButton" Margin="0,0,0,0" HorizontalAlignment="Left"  VerticalAlignment="Top" BorderThickness="0" Click="callHistoryBtn_Click" Style="{StaticResource ButtonStyle1}">
+                                    <Image Source="{Binding Image, Converter={StaticResource imageConverter}, ConverterParameter={StaticResource PhoneBackgroundBrush}}" Height="48" Width="48" />
+                                </Button>
+                                <Button x:Name="peopleButton" Margin="-20,-5,0,0" HorizontalAlignment="Left"  VerticalAlignment="Top" BorderThickness="0" Click="people_Click" Style="{StaticResource ButtonStyle1}"   >
+                                    <StackPanel Name="panelCall" Orientation="Vertical">
+                                        <TextBlock Text="{Binding ContactName, Converter={StaticResource PhoneConverter}}" x:Name="DialledContact" FontFamily="{StaticResource PhoneFontFamilyNormal}"
+                                         FontSize="28"  Foreground="{StaticResource PhoneForegroundBrush}">
+                                        </TextBlock>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding DialledNo}"  x:Name="DialledNo" FontFamily="{StaticResource PhoneFontFamilyNormal}"
+                                            FontSize="{StaticResource PhoneFontSizeNormal}" Foreground="{StaticResource PhoneForegroundBrush}">
+                                            </TextBlock><TextBlock Text="{Binding CallTime, Converter={StaticResource dateConverter}}" x:Name="CallDetails"  FontSize="{StaticResource PhoneFontSizeNormal}"  Foreground="{StaticResource PhoneForegroundBrush}">
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+                <l:NavigationList x:Name="lstContact" ItemsSource="{Binding Path=ContactItems, Mode=OneWay}" ScrollViewer.VerticalScrollBarVisibility="Hidden" Visibility="Collapsed">
+                    <l:NavigationList.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal"  Margin="0,0,0,0">
+                                <Button x:Name="callButton" Margin="0,0,0,0" HorizontalAlignment="Left"  VerticalAlignment="Top" BorderThickness="0" Click="call_Click">
+                                    <Image Source="{Binding Image, Converter={StaticResource imageConverter}, ConverterParameter={StaticResource PhoneBackgroundBrush}}" Height="48" Width="48"/>
+                                </Button>
+                                <Button x:Name="peopleButton" Margin="-12,-3,0,0" Padding="0" HorizontalAlignment="Left"  VerticalAlignment="Top" BorderThickness="0" Click="name_Click">
+                                    
+                                    <StackPanel Name="panelCall" Orientation="Vertical" HorizontalAlignment="Left">
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="28" Text="{Binding DisplayPrefix}" FontFamily="{StaticResource PhoneFontFamilyNormal}"></TextBlock>
+                                            <TextBlock FontSize="28" Foreground="{StaticResource PhoneAccentBrush}" Text="{Binding Highlighted}" FontFamily="{StaticResource PhoneFontFamilyNormal}"></TextBlock>
+                                            <TextBlock FontSize="28" Text="{Binding DisplaySuffix}" FontFamily="{StaticResource PhoneFontFamilyNormal}"></TextBlock>
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock FontSize="{StaticResource PhoneFontSizeNormal}" Text="{Binding DisplayNumberPrefix}"></TextBlock>
+                                            <TextBlock FontSize="{StaticResource PhoneFontSizeNormal}" Foreground="{StaticResource PhoneAccentBrush}" Text="{Binding DisplayNumberHighlighted}" FontFamily="{StaticResource PhoneFontFamilyNormal}"></TextBlock>
+                                            <TextBlock FontSize="{StaticResource PhoneFontSizeNormal}" Text="{Binding DisplayNumberSuffix}"></TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+                                </Button>
+                            </StackPanel>
+
+                        </DataTemplate>
+                    </l:NavigationList.ItemTemplate>
+                </l:NavigationList>
+            </StackPanel>
+
+            
+            <!--<Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>-->
+        </Grid>
+    </Grid>
+ 
+    <phone:PhoneApplicationPage.ApplicationBar>
+        <shell:ApplicationBar IsVisible="True" IsMenuEnabled="True" Mode="Minimized"  x:Name="applicationBar">
+            <shell:ApplicationBarIconButton IconUri="appbar.history.rest.png" Text="History" Click="historyButton_Click" />
+            <shell:ApplicationBarIconButton IconUri="appbar.save.rest.png" Text="Save" Click="saveButton_Click"/>
+            <shell:ApplicationBarIconButton IconUri="appbar.feature.email.rest.png" Text="Send Contact" Click="sendButton_Click"/>
+            <shell:ApplicationBarIconButton IconUri="appbar.favs.rest.png" Text="Rate &amp; Review" Click="reviewButton_Click"/>            
+        </shell:ApplicationBar>
+    </phone:PhoneApplicationPage.ApplicationBar>
+
+</phone:PhoneApplicationPage>
